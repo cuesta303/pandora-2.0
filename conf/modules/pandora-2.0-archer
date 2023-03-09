@@ -1,0 +1,24 @@
+#%Module1.0#####################################################################
+##
+## modules modulefile
+##
+## modulefiles/modules.  Generated from modules.in by configure.
+##
+proc ModulesHelp { } {
+        global version modroot precision compiler
+
+        puts stderr "\tLoads PANDORA $version"
+}
+
+set version 2.0.0 
+module-whatis   "Loads PANDORA $version"
+
+module load cray-petsc-64/3.7.6.2
+module load cray-fftw/3.3.6.3
+
+# location of the configuration file
+set 	   	pandorahome		/work/ecse1101/ecse1101/pandora2/
+
+setenv          PANDORA_HOME		$pandorahome
+
+

@@ -1,0 +1,20 @@
+#!/bin/bash
+# Job script to run simple mpi job in parallel on 1 node
+
+# set default resource requirements for job (4 cores on 1 node for 1 minutes)
+# - these can be overridden on the qsub command line
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=00:10:00
+
+#Change to directory from which job was submitted
+cd $PBS_O_WORKDIR
+
+# load openmpi module so that we find the mpirun command
+module load use.own
+module load pandora-2.0
+#module load petsc-3.8.4-debug
+#module load fftw-mpi
+
+# Run executable in parallel over number of node/processors requested
+# by the job, output messages go to output_file
+mpirun ~/work/CODE/pandora-2.0/bin/pandora2.0 ip_file.in out

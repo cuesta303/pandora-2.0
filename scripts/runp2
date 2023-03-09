@@ -1,0 +1,2 @@
+module load /usr/share/modules/modulefiles/petsc
+/usr/bin/mpirun -n 4 ~/bin/pandora2.0 ip_file.in out

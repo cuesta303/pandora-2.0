@@ -1,0 +1,217 @@
+!-----------------------------------------------------------------
+! PROGRAM CONTROL PARAMETERS
+!-----------------------------------------------------------------
+&nl_control
+RUNMODE     = 0           ! 0: Computing mode, 1: Timing mode
+TSTEPS      = 10          ! Number of time steps
+TS_REPORT   = 10          ! Report time steps
+TS_FLUIDVTK = 99999       ! Timestep to write fluid output file
+TS_CORR = 99999           ! Timestep to write autocorrelation file 
+TS_SPEC3D = 99999         ! Timestep to write 3D spectrum
+TS_SPEC1D = 99999         ! Timestep to write 1D spectrum
+TS_PLANE = 99999
+F_MOMENTS = 0             ! Compute velocity derivative moments 0 = no 1 = yes
+NL_BUFFER = 1             ! Buffer for FFT. 1: DNS 1 component, 2: DNS 3 comp., 3: RDT 1 comp., 4: RDT 3 comp.
+/
+!-----------------------------------------------------------------
+
+!-----------------------------------------------------------------
+! DOMAIN SETUP
+!-----------------------------------------------------------------
+&nl_domain
+NODES_X = 32              ! Number of nodes in each direction
+NODES_Y = 32
+NODES_Z = 32
+B110 = 1                  ! Stretch x direction by B110
+B220 = 1                  ! Stretch y direction by B220
+B330 = 1                  ! Stretch z direction by B330
+/
+!-----------------------------------------------------------------
+
+!-----------------------------------------------------------------
+! GRAVITY SETUP
+!-----------------------------------------------------------------
+&nl_gravity
+GRAVITY = 0.0, 0.0, -9.81
+/
+
+!-----------------------------------------------------------------
+! RANDOM SETUP
+!-----------------------------------------------------------------
+&nl_random_setup
+RANDOM_SEED_SIZE = 12 ! Maximum size 20
+RANDOM_SEED_FLUID = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+RANDOM_SEED_PARTICLES = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+/
+
+!-----------------------------------------------------------------
+! FLUID PROPERTIES
+!-----------------------------------------------------------------
+&nl_fluid
+F_RHO = 1.0              ! Fluid density
+F_NU  = 0.025            ! Fluid kinematic viscosity
+/
+!-----------------------------------------------------------------
+!---- FLOW TYPES -------------------------------------------------
+!-----------------------------------------------------------------
+! 1-HOMOGENEOUS ISOTROPIC           2-HOMOGENEOUS SHEAR (DNS)
+! 3-HOMOGENEOUS SHEAR (VISCOUS RDT) 4-HOMOGENEOUS SHEAR (INVISCID RDT)
+! 5-HOMOGENEOUS ISOTROPIC DEFORMED GRID 
+!-----------------------------------------------------------------
+!                        / A 0 S \
+!   DEFORMATION TENSOR = | 0 B 0 |
+!                        \ 0 0 C / 
+!-----------------------------------------------------------------
+&nl_flow
+F_TYPE = 1
+F_DEFORM_A = 0.0
+F_DEFORM_B = 0.0
+F_DEFORM_C = 0.0
+F_DEFORM_S = 28.3
+F_REMESH_T = 32
+/
+
+!-----------------------------------------------------------------
+! FLUID INITIALISATION PARAMETERS
+! F_INIT_TYPE: 0 = Null           1 = Restart file
+!              2 = Restart file on deformed grid
+!              3 = Gauss          4 = Kerr
+!              5 = Pulse          6 = Square
+!              7 = Taylor-Green   8 = -5/3 Spectrum 
+!              9 = Matsumoto     10 = Ahmed/Elghobashi 
+!-----------------------------------------------------------------
+! Gauss:  ek = ( F_INIT_U0 / ( F_INIT_KV * sqrt ( 4 * asin ( 1 ) ) ) ) * exp ( -( ( kmag - F_INIT_KP )**2 ) / ( 2 * ( F_INIT_KV**2 ) ) )
+!-----------------------------------------------------------------
+! Kerr:   ek = ( F_INIT_U0 / ( FOUR * asin ( ONE ) ) ) * ( kmag**4 ) * exp ( -( TWO * kmag**2 ) / ( F_INIT_KP**2 ) )
+!-----------------------------------------------------------------
+! Pulse:  if ( sqrt ( ( kmag - F_INIT_KP )**2 ) < F_INIT_KV ) ek = F_INIT_U0 else ek = 0
+!-----------------------------------------------------------------
+! Square:  if ( F_INIT_KSTART < kmag < F_INIT_KEND ) ek = 1 else ek = 0
+!-----------------------------------------------------------------
+! Taylor-Green:
+! u1 = F_INIT_A cos(F_INIT_I x) sin(F_INIT_J y) sin( F_INIT_K z)
+! u2 = F_INIT_B sin(F_INIT_I x) cos(F_INIT_J y) sin( F_INIT_K z)
+! u3 = F_INIT_C sin(F_INIT_I x) sin(F_INIT_J y) cos( F_INIT_K z)
+! Initialised in wave space, therefore F_INIT_I, F_INIT_J and
+! F_INIT_K need to be integers.
+!-----------------------------------------------------------------
+! -5/3 Spectrum:  if ( kmag < F_INIT_KSTART ) ek = (3/2) * ( F_INIT_EPSILON**(2/3) ) * F_INIT_KSTART**(-5/3) * ( ( kmag / F_INIT_KSTART )**2 )
+! if ( F_INIT_KSTART < kmag < F_INIT_KEND ) ek = (3/2) * ( F_INIT_EPSILON**(2/3) ) * F_INIT_KSTART**(-5/3) * ( ( kmag / F_INIT_KSTART )**(-5/3) ) else ek = 0 
+!-----------------------------------------------------------------
+! Matsumoto: if ( kmag < F_INIT_KSTART ) ek = F_INIT_U0 * ( kmag**2 )
+! if ( F_INIT_KSTART < kmag < F_INIT_KEND ) ek = F_INIT_U0 * ( 11**(11/3) ) * ( kmag **(-5/3) )
+! else ek = 0
+!-----------------------------------------------------------------
+! Ahmed/Elghobashi: ek = 16 * ( ( 2 / pi )**0.5 ) * (2/3) * F_INIT_U0 * ( ( kmag**4 ) / ( F_INIT_KP**5 ) ) * exp ( -( 2 * kmag**2 ) / ( F_INIT_KP**2 ) )
+!-----------------------------------------------------------------
+&nl_f_init
+F_INIT_TYPE = 4
+F_INIT_U0   = 0.1        ! Characteristic velocity magnitude
+F_INIT_KP   = 11.0        ! Peak wavenumber
+F_INIT_KV   = 20.0        ! Variance
+F_INIT_KSTART = 5
+F_INIT_KEND = 10
+F_INIT_A = 1.0
+F_INIT_B = 1.0
+F_INIT_C = 1.0
+F_INIT_I = 1
+F_INIT_J = 1
+F_INIT_K = 1
+/
+!-----------------------------------------------------------------
+
+!-----------------------------------------------------------------
+! FORCING SCHEME SETUP
+!-----------------------------------------------------------------
+&nl_force
+FORCE_TF    = 0.2        ! Forcing time scale
+FORCE_SIGMA = 0.03743    ! Forcing magnitude
+FORCE_KF = 2.829         ! Maximum wavenumber for forcing (recommended: 2.829)
+FORCE_STOP  = 99999      ! Stop forcing after x time steps
+/
+
+!-----------------------------------------------------------------
+! RESTART FILE SETUP
+!-----------------------------------------------------------------
+&nl_restart
+F_RESTART_WRITE      = 0              ! 0 = no 1 = yes
+F_RESTART_FILE_READ  = '32FLU.restart'
+F_RESTART_FILE_WRITE = '32FLU.restart'
+F_RESTART_SCALE      = 1              ! Restart file smaller by this factor (read only)
+F_FORCE_FILE_READ    = '32FLU.force'
+F_FORCE_FILE_WRITE   = '32FLU.force'
+P_RESTART_WRITE      = 0              ! 0 = no 1 = yes
+P_RESTART_FILE_READ  = '32PAR.restart'
+P_RESTART_FILE_WRITE = '32PAR.restart'
+/
+!-----------------------------------------------------------------
+
+!-----------------------------------------------------------------
+! NUMERICS SETUP
+!-----------------------------------------------------------------
+&nl_numerics
+RK3_TIMESTEP = 1        ! 1 = PANDORA decide 2 = fixed 3 = CFL
+RK3_CFL      = 0.75     ! Courant Friedrichs Levy number
+RK3_DT       = 0.01     ! time step dt if fixed
+RK3_SCHEME   = 7        ! Runge-Kutta integration scheme - table 1 Williamson (1980)
+NS_DEFORMED  = 1        ! Navier-Stokes in moving mesh, 1: Bardino rotational, 2: Rogallo convective, 3: Rogallo rotational
+DEALIASING   = 1        ! 1 = 2/3 rule 2 = 2/3 spherical 3 = LES spectral cutoff
+LES_CUTOFF   = 1.0      ! cutoff wavenumber as multiple of kmax
+LES_CEPSILON = 0.0      ! Dissipation constant for spectral eddy viscosity subgrid model (0.0 no subgrid model)
+/
+!-----------------------------------------------------------------
+
+!---------------------------
+! PARTICLE PRIMARY SETTINGS
+!---------------------------
+!-----------------------------------------------------------------
+! PARTICLE INITIALISATION PARAMETERS
+! P_INIT_TYPE: 1 = Restart File     2 = Random    3 = Uniform
+!              4 = Gaussian 
+!-----------------------------------------------------------------
+&nl_particle
+P_TRACK_PART = 0
+P_INIT_TYPE = 2
+P_GAUSS_SIGMAX = 0.1
+P_GAUSS_SIGMAY = 0.1
+P_GAUSS_SIGMAZ = 0.1
+P_NP_GLOBAL = 10
+P_GRAVITY = 0
+P_TS_RELEASE = 1000
+P_TWO_WAY = 0
+P_CHARGE_PART = 0
+P_TS_CHARGE_RELEASE = 99999 
+P_TS_FREEZE = 99999
+P_INTERP_ORDER = 4
+P_TS_D2VALS = 99999
+P_D_NCELLS = 33
+P_FOLLOW = 1
+P_KEEP_INITIAL_POSITION = 0 ! 0 = no (save memory) 1 = yes (more statistics)
+/
+!----------------------------
+
+!---------------------------
+! PARTICLE PROPERTIES
+!---------------------------
+&nl_part_properties
+P_RHO = 1000.0
+P_DIADIST_TYPE = 1
+P_DIA_LVLS = 1
+P_DIA_VALS = 0.01514314
+P_DIA_NPS = 1.0
+P_SURF_TENSION = 0.05 
+P_REF_CHARGE = 0.8 
+P_NP_PACKET_CH = 28.14
+/
+!----------------------------
+
+!----------------------------
+!TWO-WAY COUPLING PARAMETERS
+!----------------------------
+&nl_coupling
+MASS_LOADING = 1.0 
+PHI_PERCENT = 0.166666,0.166666,0.166666,0.166666,0.166666,0.166666
+/
+!----------------------------
+
+!----------------------------

@@ -1,0 +1,27 @@
+#%Module1.0#####################################################################
+##
+## modules modulefile
+##
+## modulefiles/modules.  Generated from modules.in by configure.
+##
+proc ModulesHelp { } {
+        global version modroot precision compiler
+
+        puts stderr "\tLoads PANDORA $version"
+}
+
+set version 2.0.0 
+module-whatis   "Loads PANDORA $version"
+
+module load use.own
+module load petsc-64bit
+module load fftw-mpi
+
+# location of the configuration file
+set 	   	pandorahome		~/
+set 	   	pandora64bit		1
+
+setenv          PANDORA_HOME		$pandorahome
+setenv          PANDORA_64BIT		$pandora64bit
+
+

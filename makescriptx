@@ -1,0 +1,14 @@
+cp Makefile.x Makefile
+module unload pandora-2.0-64bit
+module load use.own
+module load pandora-2.0
+mkdir -p modules
+# The way in which PETSc is called differs for versions <= 3.7 and >= 3.8.
+# Select the correct folder according to the PETSc version.
+cp petscsetup3.8/pg_petsc.f90 src/
+cp petscsetup3.8/g_petsc37.h include/
+cp petscsetup3.8/g_petsc38.h include/
+make
+#make pandora
+#make configure
+make clean

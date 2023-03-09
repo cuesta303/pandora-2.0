@@ -1,0 +1,13 @@
+module unload PrgEnv-gnu/5.2.82
+module unload PrgEnv-cray/5.2.82
+module load PrgEnv-intel/5.2.82
+module load cray-petsc-64/3.7.6.2
+module load cray-fftw/3.3.6.3
+mkdir -p modules
+mkdir -p include 
+cp petscsetup3.7/pg_petsc.f90 src/
+cp petscsetup3.7/g_petsc37.h include/
+cp petscsetup3.7/g_petsc38.h include/
+make
+make pandora
+make clean
